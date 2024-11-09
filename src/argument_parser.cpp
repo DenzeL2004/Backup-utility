@@ -46,8 +46,8 @@ BackupCommand ParseArguments(size_t argc, char* argv[]) {
                                                     "Please change name backupdirectory.", cmd.backup_dir.string(), cmd.work_dir.string()));
     }
 
-    for (auto const& dir_entry : std::filesystem::recursive_directory_iterator(cmd.work_dir)) {
-        if (std::filesystem::equivalent(cmd.backup_dir, dir_entry)){
+    for (auto const& work_subdir : std::filesystem::recursive_directory_iterator(cmd.work_dir)) {
+        if (std::filesystem::equivalent(cmd.backup_dir, work_subdir)){
             throw std::invalid_argument(std::format("it looks like you are trying to save the backup({})"
                                                     " to the work({}) subdirectory.\n"
                                                     "Please change name backupdirectory.", cmd.backup_dir.string(), cmd.work_dir.string()));
