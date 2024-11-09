@@ -1,8 +1,11 @@
-#include "argument_parser.hpp"
 #include <iostream>
 
-int main(int argc, char* argv[]) {
-    BackupCommand cmd = ParseArguments(argc, argv);
+#include "backup.hpp"
+#include "argument_parser.hpp"
 
-    std::cout << cmd.type << " " << cmd.work_dir << " " << cmd.backup_dir << std::endl; 
+
+int main(int argc, char* argv[]) {
+    Utils::Backup::Command cmd = Utils::Backup::ParseArguments(argc, argv);
+    Utils::Backup::MyBackup(cmd);
+
 }
