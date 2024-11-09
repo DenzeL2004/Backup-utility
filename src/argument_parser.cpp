@@ -10,7 +10,7 @@ BackupCommand::BackupCommand(const std::string& command, const std::string& work
             break;
         }
     }
-}
+} 
 
 BackupCommand ParseArguments(size_t argc, char* argv[]) {
     
@@ -21,14 +21,11 @@ BackupCommand ParseArguments(size_t argc, char* argv[]) {
     }
 
     std::string command(argv[1]);
-    std::string work_dir(argv[2]);
-    std::string backup_dir(argv[3]);
-
-    BackupCommand cmd(command, work_dir, backup_dir);
+    BackupCommand cmd(command, argv[2], argv[3]);
 
     if (cmd.type == BackupCommand::Command::UNDEFINED) { 
 
-        throw std::invalid_argument(std::format("Undefined command. You entered:{}.\n"
+        throw std::invalid_argument(std::format("Undefined command: {}.\n"
                                                 "The command can be: \'{}\', \'{}\'.", 
                                                 command, 
                                                 BackupCommand::kCommandNames[BackupCommand::Command::FULL], 
@@ -36,11 +33,25 @@ BackupCommand ParseArguments(size_t argc, char* argv[]) {
     }
 
     if (!std::filesystem::exists(cmd.work_dir)) {
-        throw std::invalid_argument(std::format("Work directory {} isn't exist.", work_dir));
+        throw std::invalid_argument(std::format("Work directory {} isn't exist.", cmd.work_dir.string()));
     }
 
     if (!std::filesystem::exists(cmd.backup_dir)) {
-        throw std::invalid_argument(std::format("Backup directory {} isn't exist.", backup_dir));
+        throw std::invalid_argument(std::format("Backup directory {} isn't exist.", cmd.backup_dir.string()));
+    }
+
+    if (std::filesystem::equivalent(cmd.backup_dir, cmd.work_dir)) {
+        throw std::invalid_argument(std::format("it looks like you are trying to save the backup({})"
+                                                    " to the work({}) directory.\n"
+                                                    "Please change name backupdirectory.", cmd.backup_dir.string(), cmd.work_dir.string()));
+    }
+
+    for (auto const& dir_entry : std::filesystem::recursive_directory_iterator(cmd.work_dir)) {
+        if (std::filesystem::equivalent(cmd.backup_dir, dir_entry)){
+            throw std::invalid_argument(std::format("it looks like you are trying to save the backup({})"
+                                                    " to the work({}) subdirectory.\n"
+                                                    "Please change name backupdirectory.", cmd.backup_dir.string(), cmd.work_dir.string()));
+        }
     }
 
     return cmd; 
