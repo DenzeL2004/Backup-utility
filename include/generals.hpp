@@ -80,13 +80,7 @@ bool CheckFileReadable(const FilePath& file);
 
 bool CheckFileWritable(const FilePath& file);
 
-bool CheckEquelDate(const time_t& lhs, const time_t& rhs);
-
-bool CheckEquelSize(const size_t lhs, const size_t rhs);
-
-bool CheckFileChange(const FilePath& file, const time_t& prev_time, const size_t prev_size);
-
-bool CheckDirChange(const FilePath& file, const time_t& prev_time);
+ErrorStatus ValidDir(const FilePath& file);
 
 std::time_t LastFileWrite(const FilePath& file);
 

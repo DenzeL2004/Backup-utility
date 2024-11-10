@@ -23,7 +23,7 @@ constexpr Command::OperationNameList Command::InitalizateOperationNames() {
 }
 
 void MyBackup(const Command& cmd) {
-    ErrorStatus err = CheckBackendCommand(cmd);
+    ErrorStatus err = ValidCommand(cmd);
     if (!err.isSuccess()) {
         throw std::invalid_argument(err.description);
     }
@@ -49,7 +49,7 @@ void MyBackup(const Command& cmd) {
 
 }
 
-static ErrorStatus CheckBackendCommand(const Command& cmd) {
+static ErrorStatus ValidCommand(const Command& cmd) {
     
     if (cmd.type == Command::Operation::UNDEFINED || cmd.type >= Command::kCountOperations) { 
         return ErrorStatus(Errors::UNDEFINED_COMMAND, std::format(  "Undefined peration was enterd.\n"
@@ -58,23 +58,11 @@ static ErrorStatus CheckBackendCommand(const Command& cmd) {
                                                                     Command::kOperationNames[Command::Operation::INCREMENTAL]));
     }
 
-    if (!std::filesystem::exists(cmd.work_dir)) {
-        return ErrorStatus(Errors::NOT_EXIST_WORK_DIR, std::format("Work file {} isn't exist.\n", cmd.work_dir.string()));
-    }
+    ErrorStatus err = ValidDir(cmd.work_dir);
+    if (!err.isSuccess()) return err;
 
-    if (!std::filesystem::exists(cmd.backup_dir)) {
-        return ErrorStatus(Errors::NOT_EXIST_BACKUP_DIR, std::format("Backup file {} isn't exist.\n", cmd.backup_dir.string()));
-    }
-
-    if (!std::filesystem::exists(cmd.work_dir)) {
-        return ErrorStatus(Errors::NOT_DIRECTORY, std::format("Work file {} isn't a drectory.\n", cmd.work_dir.string()));
-    }
-
-    if (!std::filesystem::is_directory(cmd.backup_dir)) {
-        return ErrorStatus(Errors::NOT_DIRECTORY, std::format("Backup file {} isn't a drectory.\n", cmd.backup_dir.string()));
-    }
-
-
+    err = ValidDir(cmd.backup_dir);
+    if (!err.isSuccess()) return err;
 
     if (std::filesystem::equivalent(cmd.backup_dir, cmd.work_dir)) {
         return ErrorStatus(Errors::SAME_DIR, std::format("It looks like you are trying to save the backup({})"
@@ -179,8 +167,9 @@ static void IncBackup(const FilePath& work_dir, const FilePath& backup_dir, Logg
     logger.LogHistory("\n");
 }
 
-static void IncCopy(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger, const FilesBackup& saved_files) {
-    
+static bool IncCopy(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger, const FilesBackup& saved_files) {
+    bool changed_inner_files = false;
+
     for (auto const& content : std::filesystem::directory_iterator(work_dir)) {
         FilePath file(content);
         if (!CheckFileReadable(file)) {
@@ -190,27 +179,39 @@ static void IncCopy(const FilePath& work_dir, const FilePath& backup_dir, Logger
         
         if (std::filesystem::is_directory(file)) {
             FileInfo cur_info = {0,  GetDateFromFile(file)};
+            FilePath subdir = backup_dir / file.filename();
+
+            bool subdir_changed = false;
+
             if (!saved_files.contains(file) || cur_info != saved_files.at(file)) {
                 logger.LogHistory(std::format("{} {}\n", file.string(), GetDateFromFile(file)));
+                subdir_changed = true;
+            }
 
-                FilePath subdir = backup_dir / file.filename(); 
-                std::filesystem::create_directory(subdir);
-
-                IncCopy(file, subdir, logger, saved_files);
+            std::filesystem::create_directory(subdir);
+            if (subdir_changed | IncCopy(file, subdir, logger, saved_files)) {
+                changed_inner_files = true;
+            }
+            else {
+                std::filesystem::remove(subdir);
             }
         }
         else {
-            FileInfo cur_info = {0,  GetDateFromFile(file)};
+            FileInfo cur_info = {std::filesystem::file_size(file),  GetDateFromFile(file)};
+           
             if (!saved_files.contains(file) || cur_info != saved_files.at(file)) { 
+            
                 std::filesystem::copy(file, backup_dir);
+
                 logger.Log(std::format("{} {} {}\n",    file.string(), 
                                                         GetDateFromFile(file), 
                                                         std::filesystem::file_size(file)));
- 
+                changed_inner_files = true;
             }
         }
     }
-    
+
+    return changed_inner_files;
 }
 
 } 

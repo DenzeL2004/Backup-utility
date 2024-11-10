@@ -110,28 +110,16 @@ std::string GetDateFromFile(const FilePath& file) {
     return GetDate(LastFileWrite(file));
 }
 
-// bool CheckEquelDate(const time_t& lhs, const time_t& rhs) {
-//     tm lhs_date = *localtime(&lhs);
-//     tm rhs_date = *localtime(&rhs);
+ErrorStatus ValidDir(const FilePath& file) {
+    if (!std::filesystem::exists(file)) {
+        return ErrorStatus(Errors::NOT_EXIST_WORK_DIR, std::format("File {} isn't exist.\n", file.string()));
+    }
 
-//     return  (lhs_date.tm_year == rhs_date.tm_year)  && 
-//             (lhs_date.tm_mon  == rhs_date.tm_mon)   &&
-//             (lhs_date.tm_mday == rhs_date.tm_mday)  && 
-//             (lhs_date.tm_hour == rhs_date.tm_hour)  && 
-//             (lhs_date.tm_min  == rhs_date.tm_min)   && 
-//             (lhs_date.tm_sec  == rhs_date.tm_sec);   
-// }
+    if (!std::filesystem::is_directory(file)) {
+        return ErrorStatus(Errors::NOT_DIRECTORY, std::format("File {} isn't a drectory.\n", file.string()));
+    }
 
-// bool CheckEquelSize(const size_t lhs, const size_t rhs) {
-//     return lhs == rhs;
-// }
-
-// bool CheckFileChange(const FilePath& file, const time_t& prev_time, const size_t prev_size) {
-//      return CheckEquelDate(LastFileWrite(file), prev_time) && CheckEquelSize(std::filesystem::file_size(file), prev_size);
-// }
-
-// bool CheckDirChange(const FilePath& file, const time_t& prev_time) {
-//     return CheckEquelDate(LastFileWrite(file), prev_time);
-// }
+    return ErrorStatus(Errors::SUCCESS, "");
+}
 
 }

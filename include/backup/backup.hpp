@@ -36,7 +36,7 @@ struct Command {
 
 void MyBackup(const Command& cmd);
 
-static ErrorStatus CheckBackendCommand(const Command& cmd);
+static ErrorStatus ValidCommand(const Command& cmd);
 
 static FilePath CreateBackupDir(const FilePath& backup_dir);
 
@@ -46,6 +46,6 @@ static void FullCopy(const FilePath& work_dir, const FilePath& backup_dir, Logge
 
 static void IncBackup(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger);
 
-static void IncCopy(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger, const FilesBackup& saved_files);
+static bool IncCopy(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger, const FilesBackup& saved_files);
 
 } 

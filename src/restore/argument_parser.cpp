@@ -1,6 +1,6 @@
-#include "backup/argument_parser.hpp"
+#include "restore/argument_parser.hpp"
 
-namespace utils::backup {
+namespace utils::restore {
 
 Command ParseArguments(size_t argc, char* argv[]) {
     
@@ -10,8 +10,7 @@ Command ParseArguments(size_t argc, char* argv[]) {
                                                 argc - 1, kCountArguments));
     }
 
-    std::string command(argv[1]);
-    return Command(command, argv[2], argv[3]);
+    return Command(argv[1], argv[2]);
 }
 
 }
