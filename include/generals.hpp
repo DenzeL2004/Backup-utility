@@ -49,8 +49,8 @@ class Logger {
 
     private: 
 
-    std::ofstream hole_history;
-    std::ofstream last_full;
+    std::fstream hole_history;
+    std::fstream last_full;
 };
 
 bool CheckFileReadable(const FilePath& file);

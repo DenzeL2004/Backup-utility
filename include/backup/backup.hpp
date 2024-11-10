@@ -38,8 +38,6 @@ void MyBackup(const Command& cmd);
 
 static ErrorStatus CheckBackendCommand(const Command& cmd);
 
-static FilePath CreateLogFile(const FilePath& dir);
-
 static FilePath CreateBackupDir(const FilePath& backup_dir);
 
 static void FullBackup(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger);
