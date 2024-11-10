@@ -38,8 +38,14 @@ void MyBackup(const Command& cmd);
 
 static ErrorStatus CheckBackendCommand(const Command& cmd);
 
-static FilePath GenerateLogFile(const Command& cmd);
+static FilePath CreateLogFile(const FilePath& dir);
 
-static ErrorStatus FullBackup(const FilePath& work_dir, const FilePath& backup_dir, const FilePath& log_file);
+static FilePath CreateBackupDir(const FilePath& backup_dir);
+
+static void FullBackup(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger);
+
+static void FullCopy(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger);
+
+static std::string GetDate(const std::filesystem::file_time_type& file_time);
 
 } 

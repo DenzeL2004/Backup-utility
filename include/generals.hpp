@@ -12,8 +12,6 @@
 
 namespace utils {
 
-const std::string kBackupLogFileName = ".BackupLog";
-
 using FilePath = std::filesystem::path;
 
 enum class Errors : size_t {
@@ -34,5 +32,26 @@ struct ErrorStatus {
 
     bool isSuccess();
 };
+
+class Logger {
+    
+    public: 
+    
+    static const std::string kBackupLogFileName;
+    static const std::string kLastFullLog; 
+
+    Logger(const FilePath& dir, const std::string& log_file, const std::string& last_full);    
+
+    void LogHistory(const std::string& msg);    
+    void LogToLast(const std::string& msg);
+    void Log(const std::string& msg);
+
+    private: 
+
+    std::ofstream hole_history;
+    std::ofstream last_full;
+};
+
+bool CheckFileReadable(const FilePath& file);
 
 }

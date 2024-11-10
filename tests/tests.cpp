@@ -50,7 +50,7 @@ TEST(BackupIsSubdirWork, BACKUP) {
 }
 
 TEST(GenetateLogFile, BACKUP) {
-    utils::FilePath log_file = utils::FilePath(backup_dir_name) / utils::FilePath(utils::kBackupLogFileName);
+    utils::FilePath log_file = utils::FilePath(backup_dir_name) / utils::FilePath(utils::Logger::kBackupLogFileName);
     if (std::filesystem::exists(log_file)){
         std::filesystem::remove(log_file);
     }
