@@ -15,38 +15,49 @@ char* argv_inc[] = {"rubish", "incremental", work_dir_name.data(), backup_dir_na
 
 
 TEST(NoExceptions, PARSER) {
-    ASSERT_NO_THROW(Utils::Backup::ParseArguments(argc, argv_full));
-    ASSERT_NO_THROW(Utils::Backup::ParseArguments(argc, argv_inc));
+    ASSERT_NO_THROW(utils::backup::ParseArguments(argc, argv_full));
+    ASSERT_NO_THROW(utils::backup::ParseArguments(argc, argv_inc));
 }
 
-TEST(UncorrectArgc, PARSER) {
-    ASSERT_ANY_THROW(Utils::Backup::ParseArguments(1, argv_full));
+TEST(UncorrectArgc, BACKUP) {
+    ASSERT_ANY_THROW(utils::backup::ParseArguments(1, argv_full));
 }
 
-TEST(UndefineCommand, PARSER) {
+TEST(UndefineCommand, BACKUP) {
     char* argv[] = {"rubish", "undefinwe", work_dir_name.data(), backup_dir_name.data()};
-    ASSERT_ANY_THROW(Utils::Backup::MyBackup(Utils::Backup::ParseArguments(argc, argv)));
+    ASSERT_ANY_THROW(utils::backup::MyBackup(utils::backup::ParseArguments(argc, argv)));
 }
 
-TEST(NotExistWorkDir, PARSER) {
+TEST(NotExistWorkDir, BACKUP) {
     char* argv[] = {"rubish", "full", "work1", backup_dir_name.data()};
-    ASSERT_ANY_THROW(Utils::Backup::MyBackup(Utils::Backup::ParseArguments(argc, argv)));
+    ASSERT_ANY_THROW(utils::backup::MyBackup(utils::backup::ParseArguments(argc, argv)));
 }
 
-TEST(NotExistBackupDir, PARSER) {
+TEST(NotExistbackupDir, BACKUP) {
     char* argv[] = {"rubish", "full", work_dir_name.data(), "backup1"};
-    ASSERT_ANY_THROW(Utils::Backup::MyBackup(Utils::Backup::ParseArguments(argc, argv)));
+    ASSERT_ANY_THROW(utils::backup::MyBackup(utils::backup::ParseArguments(argc, argv)));
 }
 
-TEST(BackuSameWork, PARSER) {
+TEST(BackuSameWork, BACKUP) {
     char* argv[] = {"rubish", "full", work_dir_name.data(), work_dir_name.data()};
-    ASSERT_ANY_THROW(Utils::Backup::MyBackup(Utils::Backup::ParseArguments(argc, argv)));
+    ASSERT_ANY_THROW(utils::backup::MyBackup(utils::backup::ParseArguments(argc, argv)));
 }
 
 
-TEST(BackupIsSubdirWork, PARSER) {
+TEST(BackupIsSubdirWork, BACKUP) {
     char* argv[] = {"rubish", "full", work_dir_name.data(), "work/subdir"};
-    ASSERT_ANY_THROW(Utils::Backup::MyBackup(Utils::Backup::ParseArguments(argc, argv)));
+    ASSERT_ANY_THROW(utils::backup::MyBackup(utils::backup::ParseArguments(argc, argv)));
+}
+
+TEST(GenetateLogFile, BACKUP) {
+    utils::FilePath log_file = utils::FilePath(backup_dir_name) / utils::FilePath(utils::kBackupLogFileName);
+    if (std::filesystem::exists(log_file)){
+        std::filesystem::remove(log_file);
+    }
+
+    utils::backup::MyBackup(utils::backup::ParseArguments(argc, argv_full));
+
+    ASSERT_TRUE(std::filesystem::exists(log_file));
 }
 
 

@@ -2,7 +2,7 @@
 
 #include "backup.hpp"
 
-namespace Utils::Backup {
+namespace utils::backup {
 
 size_t const kCountArguments = 3;
 

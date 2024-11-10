@@ -1,6 +1,6 @@
 #include "generals.hpp"
 
-namespace Utils {
+namespace utils {
 
 ErrorStatus::ErrorStatus(Errors err, const std::string& description) : err(err), description(description) {}
 

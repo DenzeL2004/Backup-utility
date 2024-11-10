@@ -1,6 +1,6 @@
 #include "argument_parser.hpp"
 
-namespace Utils::Backup {
+namespace utils::backup {
 
 Command ParseArguments(size_t argc, char* argv[]) {
     

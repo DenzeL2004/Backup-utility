@@ -1,14 +1,20 @@
 #pragma once
 
-#include <exception>
 #include <filesystem>
-#include <string>
-#include <format>
+
+#include <exception>
+
+#include <fstream>
 #include <iostream>
 
-namespace Utils {
+#include <string>
+#include <format>
+
+namespace utils {
 
 const std::string kBackupLogFileName = ".BackupLog";
+
+using FilePath = std::filesystem::path;
 
 enum class Errors : size_t {
     SUCCESS,

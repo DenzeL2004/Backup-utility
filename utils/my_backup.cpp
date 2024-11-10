@@ -5,7 +5,7 @@
 
 
 int main(int argc, char* argv[]) {
-    Utils::Backup::Command cmd = Utils::Backup::ParseArguments(argc, argv);
-    Utils::Backup::MyBackup(cmd);
+    utils::backup::Command cmd = utils::backup::ParseArguments(argc, argv);
+    utils::backup::MyBackup(cmd);
 
 }

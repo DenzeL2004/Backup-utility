@@ -1,7 +1,7 @@
 #pragma once 
 
 #include "generals.hpp"
-namespace Utils::Backup {
+namespace utils::backup {
 
 struct Command {
 
@@ -16,8 +16,8 @@ struct Command {
         COUNT
     };
 
-    std::filesystem::path work_dir;
-    std::filesystem::path backup_dir;
+    FilePath work_dir;
+    FilePath backup_dir;
     Operation type;
 
     static constexpr size_t kCountOperations = static_cast<operation_t>(Operation::COUNT) - 1;
@@ -37,5 +37,9 @@ struct Command {
 void MyBackup(const Command& cmd);
 
 static ErrorStatus CheckBackendCommand(const Command& cmd);
+
+static FilePath GenerateLogFile(const Command& cmd);
+
+static ErrorStatus FullBackup(const FilePath& work_dir, const FilePath& backup_dir, const FilePath& log_file);
 
 } 

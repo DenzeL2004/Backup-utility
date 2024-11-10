@@ -1,6 +1,6 @@
 #include "backup.hpp"
 
-namespace Utils::Backup {
+namespace utils::backup {
 
 const Command::OperationNameList Command::kOperationNames = Command::InitalizateOperationNames();
 
@@ -22,14 +22,15 @@ constexpr Command::OperationNameList Command::InitalizateOperationNames() {
     return names;
 }
 
-
 void MyBackup(const Command& cmd) {
     ErrorStatus err = CheckBackendCommand(cmd);
     if (!err.isSuccess()){
         throw std::invalid_argument(err.description);
     }
-}
 
+    FilePath log_file = GenerateLogFile(cmd);
+
+}
 
 static ErrorStatus CheckBackendCommand(const Command& cmd) {
     
@@ -66,6 +67,20 @@ static ErrorStatus CheckBackendCommand(const Command& cmd) {
     }
 
     return ErrorStatus(Errors::SUCCESS, "");
+}
+
+static FilePath GenerateLogFile(const Command& cmd) {
+    FilePath log_file_path = cmd.backup_dir / FilePath(kBackupLogFileName);
+    
+    if (!std::filesystem::exists(log_file_path)) {
+        std::ofstream(log_file_path.string());
+    }
+
+    return log_file_path;
+}
+
+static ErrorStatus FullBackup(const FilePath& work_dir, const FilePath& backup_dir, const FilePath& log_file) {
+    
 }
 
 } 
