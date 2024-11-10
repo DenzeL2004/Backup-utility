@@ -20,8 +20,11 @@ enum class Errors : size_t {
     UNDEFINED_COMMAND,
     NOT_EXIST_WORK_DIR,
     NOT_EXIST_BACKUP_DIR,
+    NOT_DIRECTORY,
     SAME_DIR,
     SUB_DIR,
+    NOT_READABLE,
+    NOT_WRITABLE,
 };
 
 struct ErrorStatus {
@@ -54,6 +57,8 @@ class Logger {
 };
 
 bool CheckFileReadable(const FilePath& file);
+
+bool CheckFileWritable(const FilePath& file);
 
 std::time_t LastFileWrite(const FilePath& file);
 

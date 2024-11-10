@@ -55,12 +55,22 @@ static ErrorStatus CheckBackendCommand(const Command& cmd) {
     }
 
     if (!std::filesystem::exists(cmd.work_dir)) {
-        return ErrorStatus(Errors::NOT_EXIST_WORK_DIR, std::format("Work directory {} isn't exist.\n", cmd.work_dir.string()));
+        return ErrorStatus(Errors::NOT_EXIST_WORK_DIR, std::format("Work file {} isn't exist.\n", cmd.work_dir.string()));
     }
 
     if (!std::filesystem::exists(cmd.backup_dir)) {
-        return ErrorStatus(Errors::NOT_EXIST_BACKUP_DIR, std::format("Backup directory {} isn't exist.\n", cmd.backup_dir.string()));
+        return ErrorStatus(Errors::NOT_EXIST_BACKUP_DIR, std::format("Backup file {} isn't exist.\n", cmd.backup_dir.string()));
     }
+
+    if (!std::filesystem::exists(cmd.work_dir)) {
+        return ErrorStatus(Errors::NOT_DIRECTORY, std::format("Work file {} isn't a drectory.\n", cmd.work_dir.string()));
+    }
+
+    if (!std::filesystem::is_directory(cmd.backup_dir)) {
+        return ErrorStatus(Errors::NOT_DIRECTORY, std::format("Backup file {} isn't a drectory.\n", cmd.backup_dir.string()));
+    }
+
+
 
     if (std::filesystem::equivalent(cmd.backup_dir, cmd.work_dir)) {
         return ErrorStatus(Errors::SAME_DIR, std::format("It looks like you are trying to save the backup({})"
@@ -69,14 +79,24 @@ static ErrorStatus CheckBackendCommand(const Command& cmd) {
                                                         cmd.backup_dir.string(), cmd.work_dir.string()));
     }
 
-    for (auto const& content : std::filesystem::recursive_directory_iterator(cmd.work_dir)) {
-        
-        if (std::filesystem::equivalent(cmd.backup_dir, content)){
-            return ErrorStatus(Errors::SUB_DIR, std::format("It looks like you are trying to save the backup({})"
+    if (!CheckFileReadable(cmd.work_dir)){
+        return ErrorStatus(Errors::NOT_READABLE, std::format("File {} is not specified flag read ownre by 1," 
+                                                                    " further backup is not possible.\n", cmd.work_dir.string()));
+    }
+
+    if (!CheckFileWritable(cmd.backup_dir)){
+        return ErrorStatus(Errors::NOT_WRITABLE, std::format("File {} is not specified flag write ownre by 1," 
+                                                                    " further backup is not possible.\n", cmd.backup_dir.string()));
+    }
+
+    std::string work_dir_abs_path = std::filesystem::absolute(cmd.work_dir).string();
+    std::string backup_dir_abs_path = std::filesystem::absolute(cmd.backup_dir).string();
+
+    if (backup_dir_abs_path.find(work_dir_abs_path) == 0) {
+        return ErrorStatus(Errors::SUB_DIR, std::format("It looks like you are trying to save the backup({})"
                                                             " to the work's({}) subdirectory.\n"
                                                             "Please change name backup directory.", 
                                                             cmd.backup_dir.string(), cmd.work_dir.string()));
-        }
     }
 
     return ErrorStatus(Errors::SUCCESS, "");

@@ -34,6 +34,11 @@ bool CheckFileReadable(const FilePath& file) {
     return (file_perms & std::filesystem::perms::owner_read) != std::filesystem::perms::none;
 }
 
+bool CheckFileWritable(const FilePath& file) { 
+    std::filesystem::perms file_perms = std::filesystem::status(file).permissions();
+    return (file_perms & std::filesystem::perms::owner_write) != std::filesystem::perms::none;
+}
+
 std::time_t LastFileWrite(const FilePath& file) {
     auto file_time = std::filesystem::last_write_time(file);
     auto system_time = std::chrono::clock_cast<std::chrono::system_clock>(file_time);
