@@ -3,6 +3,7 @@
 #include <filesystem>
 
 #include <exception>
+#include <chrono>
 
 #include <fstream>
 #include <iostream>
@@ -53,5 +54,11 @@ class Logger {
 };
 
 bool CheckFileReadable(const FilePath& file);
+
+std::time_t LastFileWrite(const FilePath& file);
+
+std::string GetDate(const time_t& time);
+
+std::string GetDateFromFile(const FilePath& file);
 
 }

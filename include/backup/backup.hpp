@@ -46,6 +46,4 @@ static void FullBackup(const FilePath& work_dir, const FilePath& backup_dir, Log
 
 static void FullCopy(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger);
 
-static std::string GetDate(const std::filesystem::file_time_type& file_time);
-
 } 

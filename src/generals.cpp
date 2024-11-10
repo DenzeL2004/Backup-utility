@@ -34,4 +34,28 @@ bool CheckFileReadable(const FilePath& file) {
     return (file_perms & std::filesystem::perms::owner_read) != std::filesystem::perms::none;
 }
 
+std::time_t LastFileWrite(const FilePath& file) {
+    auto file_time = std::filesystem::last_write_time(file);
+    auto system_time = std::chrono::clock_cast<std::chrono::system_clock>(file_time);
+    auto time = std::chrono::system_clock::to_time_t(system_time);
+
+    return time;
+}
+
+std::string GetDate(const time_t& time) {
+
+    tm date = *localtime(&time);
+
+    std::string stime("YYYY-MM-DD_HH-MM-SS");
+    sprintf(stime.data(), "%.4d-%.2d-%.2d_%.2d-%.2d-%.2d",  date.tm_year + 1900, date.tm_mon + 1, date.tm_mday, 
+                                                            date.tm_hour, date.tm_min, date.tm_sec);
+
+    return stime;
+}
+
+std::string GetDateFromFile(const FilePath& file) { 
+    return GetDate(LastFileWrite(file));
+}
+
+
 }

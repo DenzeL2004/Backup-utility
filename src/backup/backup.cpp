@@ -1,7 +1,5 @@
 #include "backup.hpp"
 
-#include <chrono>
-
 namespace utils::backup {
 
 const Command::OperationNameList Command::kOperationNames = Command::InitalizateOperationNames();
@@ -85,14 +83,8 @@ static ErrorStatus CheckBackendCommand(const Command& cmd) {
 }
 
 static FilePath CreateBackupDir(const FilePath& dir) {
-    time_t local_time = time(NULL);
-    tm data = *localtime(&local_time);
-
-    std::string name("YYYY-MM-DD_HH-MM-SS");
-    sprintf(name.data(), "%.4d-%.2d-%.2d_%.2d-%.2d-%.2d",   data.tm_year + 1900, data.tm_mon + 1, data.tm_mday, 
-                                                            data.tm_hour, data.tm_min, data.tm_sec);
     
-    FilePath cur_backup_dir = dir / FilePath(name);
+    FilePath cur_backup_dir = dir / GetDate(time(NULL));
 
 
     if (!std::filesystem::exists(cur_backup_dir)) {
@@ -122,7 +114,7 @@ static void FullCopy(const FilePath& work_dir, const FilePath& backup_dir, Logge
 
         
         if (std::filesystem::is_directory(file)) {
-            logger.Log(std::format("{} {}\n", file.string(), GetDate(std::filesystem::last_write_time(file))));
+            logger.Log(std::format("{} {}\n", file.string(), GetDateFromFile(file)));
 
             FilePath subdir = backup_dir / file.filename(); 
             std::filesystem::create_directory(subdir);
@@ -131,26 +123,14 @@ static void FullCopy(const FilePath& work_dir, const FilePath& backup_dir, Logge
         }
         else {
             std::filesystem::copy(file, backup_dir);
-            logger.Log(std::format("{} {} {}\n",   file.string(), 
-                                                    GetDate(std::filesystem::last_write_time(file)), 
+            logger.Log(std::format("{} {} {}\n",    file.string(), 
+                                                    GetDateFromFile(file), 
                                                     std::filesystem::file_size(file)));
         }
     }
     
 }
 
-static std::string GetDate(const std::filesystem::file_time_type& file_time) {
-    const auto system_time = std::chrono::clock_cast<std::chrono::system_clock>(file_time);
-    const auto time = std::chrono::system_clock::to_time_t(system_time);
-
-    tm data = *localtime(&time);
-
-    std::string stime("YYYY-MM-DD_HH-MM-SS");
-    sprintf(stime.data(), "%.4d-%.2d-%.2d_%.2d-%.2d-%.2d",   data.tm_year + 1900, data.tm_mon + 1, data.tm_mday, 
-                                                            data.tm_hour, data.tm_min, data.tm_sec);
-
-    return stime;
-}
 
 } 
 
