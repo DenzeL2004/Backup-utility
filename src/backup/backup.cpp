@@ -24,53 +24,48 @@ constexpr Command::OperationNameList Command::InitalizateOperationNames() {
 
 
 void MyBackup(const Command& cmd) {
-    Errors err = CheckBackendCommand(cmd);
-    if (err != Errors::SUCCESS){
-        throw std::invalid_argument("Something wrong with arguments.");
+    ErrorStatus err = CheckBackendCommand(cmd);
+    if (!err.isSuccess()){
+        throw std::invalid_argument(err.description);
     }
 }
 
 
-static Errors CheckBackendCommand(const Command& cmd) {
+static ErrorStatus CheckBackendCommand(const Command& cmd) {
     
     if (cmd.type == Command::Operation::UNDEFINED || cmd.type >= Command::kCountOperations) { 
-        std::cerr << std::format(   "Undefined peration was enterd.\n"
-                                    "The operation can be: \'{}\', \'{}\'.\n", 
-                                    Command::kOperationNames[Command::Operation::FULL], 
-                                    Command::kOperationNames[Command::Operation::INCREMENTAL]);
-
-        return Errors::UNDEFINED_COMMAND;
+        return ErrorStatus(Errors::UNDEFINED_COMMAND, std::format(  "Undefined peration was enterd.\n"
+                                                                    "The operation can be: \'{}\', \'{}\'.\n", 
+                                                                    Command::kOperationNames[Command::Operation::FULL], 
+                                                                    Command::kOperationNames[Command::Operation::INCREMENTAL]));
     }
 
     if (!std::filesystem::exists(cmd.work_dir)) {
-        std::cerr << std::format("Work directory {} isn't exist.\n", cmd.work_dir.string());
-        return Errors::NOT_EXIST_WORK_DIR;
+        return ErrorStatus(Errors::NOT_EXIST_WORK_DIR, std::format("Work directory {} isn't exist.\n", cmd.work_dir.string()));
     }
 
     if (!std::filesystem::exists(cmd.backup_dir)) {
-        std::cerr <<  std::format("Backup directory {} isn't exist.\n", cmd.backup_dir.string());
-        return Errors::NOT_EXIST_BACKUP_DIR;
+        return ErrorStatus(Errors::NOT_EXIST_BACKUP_DIR, std::format("Backup directory {} isn't exist.\n", cmd.backup_dir.string()));
     }
 
     if (std::filesystem::equivalent(cmd.backup_dir, cmd.work_dir)) {
-        std::cerr << std::format(   "it looks like you are trying to save the backup({})"
-                                    " to the work({}) directory.\n"
-                                    "Please change name backupdirectory.", cmd.backup_dir.string(), cmd.work_dir.string());
-    
-        return Errors::SAME_DIR;
+        return ErrorStatus(Errors::SAME_DIR, std::format("It looks like you are trying to save the backup({})"
+                                                        " to the work({}) directory.\n"
+                                                        "Please change name backupdirectory.", 
+                                                        cmd.backup_dir.string(), cmd.work_dir.string()));
     }
 
     for (auto const& work_subdir : std::filesystem::recursive_directory_iterator(cmd.work_dir)) {
         
         if (std::filesystem::equivalent(cmd.backup_dir, work_subdir)){
-            std::cerr << std::format(   "it looks like you are trying to save the backup({})"
-                                        " to the work's({}) subdirectory.\n"
-                                        "Please change name backup directory.", cmd.backup_dir.string(), cmd.work_dir.string());
-            return Errors::SUB_DIR;
+            return ErrorStatus(Errors::SUB_DIR, std::format("It looks like you are trying to save the backup({})"
+                                                            " to the work's({}) subdirectory.\n"
+                                                            "Please change name backup directory.", 
+                                                            cmd.backup_dir.string(), cmd.work_dir.string()));
         }
     }
 
-    return Errors::SUCCESS;
+    return ErrorStatus(Errors::SUCCESS, "");
 }
 
 } 

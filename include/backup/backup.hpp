@@ -1,21 +1,7 @@
 #pragma once 
 
-#include <exception>
-#include <filesystem>
-#include <string>
-#include <format>
-#include <iostream>
-
+#include "generals.hpp"
 namespace Utils::Backup {
-
-enum class Errors : size_t {
-    SUCCESS,
-    UNDEFINED_COMMAND,
-    NOT_EXIST_WORK_DIR,
-    NOT_EXIST_BACKUP_DIR,
-    SAME_DIR,
-    SUB_DIR,
-};
 
 struct Command {
 
@@ -50,6 +36,6 @@ struct Command {
 
 void MyBackup(const Command& cmd);
 
-static Errors CheckBackendCommand(const Command& cmd);
+static ErrorStatus CheckBackendCommand(const Command& cmd);
 
 } 
