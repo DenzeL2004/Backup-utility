@@ -35,6 +35,10 @@ void MyBackup(const Command& cmd) {
         case Command::Operation::FULL:
             FullBackup(cmd.work_dir, backup_dir, logger);
             break;
+
+        case Command::Operation::INCREMENTAL:
+            IncBackup(cmd.work_dir, backup_dir, logger);
+            break;
         default:
             break;
     }
@@ -114,12 +118,16 @@ static FilePath CreateBackupDir(const FilePath& dir) {
     return cur_backup_dir;
 }
 
+//-------------------------------------------------------------------------------------------------------------
+
 static void FullBackup(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger) {
-    logger.Log(std::format("{} {} {} \n", Command::kOperationNames[Command::Operation::FULL], 
+    logger.ClearLastFullBackup();
+
+    logger.LogHistory(std::format("{} {} {} \n", Command::kOperationNames[Command::Operation::FULL], 
                                             work_dir.string(), backup_dir.string())); 
 
     FullCopy(work_dir, backup_dir, logger);
-    logger.Log("\n\n");
+    logger.LogHistory("\n\n");
 }
 
 
@@ -131,7 +139,6 @@ static void FullCopy(const FilePath& work_dir, const FilePath& backup_dir, Logge
             std::cout << std::format("Can't make backup file: {}. Set owner read permision by 1.\n", file.string());
             continue;
         }
-
         
         if (std::filesystem::is_directory(file)) {
             logger.Log(std::format("{} {}\n", file.string(), GetDateFromFile(file)));
@@ -151,6 +158,60 @@ static void FullCopy(const FilePath& work_dir, const FilePath& backup_dir, Logge
     
 }
 
+//-------------------------------------------------------------------------------------------------------------
+
+static void IncBackup(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger) {
+    if (!logger.CheckWasFullBackup()) {
+        std::cout << std::format("Not a single {} backup was made, so the {} request was replaced with a {} one.", 
+                                Command::kOperationNames[Command::Operation::FULL],
+                                Command::kOperationNames[Command::Operation::INCREMENTAL],
+                                Command::kOperationNames[Command::Operation::FULL]);
+
+        FullBackup(work_dir, backup_dir, logger);
+
+        return;
+    }
+
+    logger.LogHistory(std::format("{} {} {} \n", Command::kOperationNames[Command::Operation::INCREMENTAL], 
+                                            work_dir.string(), backup_dir.string())); 
+
+    IncCopy(work_dir, backup_dir, logger, logger.GetLastFullBackup());
+    logger.LogHistory("\n");
+}
+
+static void IncCopy(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger, const FilesBackup& saved_files) {
+    
+    for (auto const& content : std::filesystem::directory_iterator(work_dir)) {
+        FilePath file(content);
+        if (!CheckFileReadable(file)) {
+            std::cout << std::format("Can't make backup file: {}. Set owner read permision by 1.\n", file.string());
+            continue;
+        }
+        
+        if (std::filesystem::is_directory(file)) {
+            FileInfo cur_info = {0,  GetDateFromFile(file)};
+            if (!saved_files.contains(file) || cur_info != saved_files.at(file)) {
+                logger.LogHistory(std::format("{} {}\n", file.string(), GetDateFromFile(file)));
+
+                FilePath subdir = backup_dir / file.filename(); 
+                std::filesystem::create_directory(subdir);
+
+                IncCopy(file, subdir, logger, saved_files);
+            }
+        }
+        else {
+            FileInfo cur_info = {0,  GetDateFromFile(file)};
+            if (!saved_files.contains(file) || cur_info != saved_files.at(file)) { 
+                std::filesystem::copy(file, backup_dir);
+                logger.Log(std::format("{} {} {}\n",    file.string(), 
+                                                        GetDateFromFile(file), 
+                                                        std::filesystem::file_size(file)));
+ 
+            }
+        }
+    }
+    
+}
 
 } 
 

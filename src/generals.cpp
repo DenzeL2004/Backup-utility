@@ -6,8 +6,10 @@ const std::string Logger::kBackupLogFileName = ".BackupHistory";
 const std::string Logger::kLastFullLog = ".LastLog";
 
 Logger::Logger(const FilePath& dir,  const std::string& log_file, const std::string& last_full_file) : 
+        history_log_file(dir / log_file),
+        last_full_file(dir / last_full_file),
         hole_history(dir / log_file, std::ios_base::app),
-        last_full(dir / last_full_file, std::ios_base::out) {}
+        last_full(dir / last_full_file, std::ios_base::out | std::ios_base::in) {}
 
 
 void Logger::LogHistory(const std::string& msg) {
@@ -23,11 +25,57 @@ void Logger::Log(const std::string& msg) {
     LogHistory(msg);
 }
 
+void Logger::ClearLastFullBackup(){
+    last_full.close();
+
+    std::fstream clear_file(last_full_file, std::ios::out);
+    clear_file.close();
+
+    last_full.open(last_full_file, std::ios_base::out | std::ios_base::in);
+}
+
+bool Logger::CheckWasFullBackup() {
+    return std::filesystem::file_size(last_full_file) != 0;
+}
+
+FilesBackup Logger::GetLastFullBackup() {
+    std::string text;
+
+    FilesBackup saved_files;
+
+    while(std::getline(last_full, text)){
+        std::stringstream line(text);
+        std::string path, data, size;
+
+        line >> path;
+        line >> data;
+
+        if (line >> size) {
+            saved_files[path] = {std::stoull(size), data};
+        }
+        else {
+            saved_files[path] = {0, data};
+        }
+    }
+
+    return saved_files;
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
+bool operator==(const FileInfo& lhs, const FileInfo& rhs) {
+    return lhs.size == rhs.size && lhs.last_changed == rhs.last_changed;
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
 ErrorStatus::ErrorStatus(Errors err, const std::string& description) : err(err), description(description) {}
 
 bool ErrorStatus::isSuccess() {
     return err == Errors::SUCCESS;
 }
+
+//-------------------------------------------------------------------------------------------------------------
 
 bool CheckFileReadable(const FilePath& file) { 
     std::filesystem::perms file_perms = std::filesystem::status(file).permissions();
@@ -62,5 +110,28 @@ std::string GetDateFromFile(const FilePath& file) {
     return GetDate(LastFileWrite(file));
 }
 
+// bool CheckEquelDate(const time_t& lhs, const time_t& rhs) {
+//     tm lhs_date = *localtime(&lhs);
+//     tm rhs_date = *localtime(&rhs);
+
+//     return  (lhs_date.tm_year == rhs_date.tm_year)  && 
+//             (lhs_date.tm_mon  == rhs_date.tm_mon)   &&
+//             (lhs_date.tm_mday == rhs_date.tm_mday)  && 
+//             (lhs_date.tm_hour == rhs_date.tm_hour)  && 
+//             (lhs_date.tm_min  == rhs_date.tm_min)   && 
+//             (lhs_date.tm_sec  == rhs_date.tm_sec);   
+// }
+
+// bool CheckEquelSize(const size_t lhs, const size_t rhs) {
+//     return lhs == rhs;
+// }
+
+// bool CheckFileChange(const FilePath& file, const time_t& prev_time, const size_t prev_size) {
+//      return CheckEquelDate(LastFileWrite(file), prev_time) && CheckEquelSize(std::filesystem::file_size(file), prev_size);
+// }
+
+// bool CheckDirChange(const FilePath& file, const time_t& prev_time) {
+//     return CheckEquelDate(LastFileWrite(file), prev_time);
+// }
 
 }

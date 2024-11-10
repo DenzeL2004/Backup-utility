@@ -8,8 +8,11 @@
 #include <fstream>
 #include <iostream>
 
+#include<map>
+
 #include <string>
 #include <format>
+#include <sstream>
 
 namespace utils {
 
@@ -36,7 +39,14 @@ struct ErrorStatus {
 
     bool isSuccess();
 };
+struct FileInfo{
+    size_t size;
+    std::string last_changed;
 
+    friend bool operator==(const FileInfo& lhs, const FileInfo& rhs);
+};
+
+using FilesBackup = std::map<std::string, FileInfo>;
 class Logger {
     
     public: 
@@ -50,15 +60,33 @@ class Logger {
     void LogToLast(const std::string& msg);
     void Log(const std::string& msg);
 
+    void ClearLastFullBackup();
+
+    bool CheckWasFullBackup();
+
+    FilesBackup GetLastFullBackup();
+
     private: 
+
+    FilePath history_log_file;
+    FilePath last_full_file;
 
     std::fstream hole_history;
     std::fstream last_full;
+
 };
 
 bool CheckFileReadable(const FilePath& file);
 
 bool CheckFileWritable(const FilePath& file);
+
+bool CheckEquelDate(const time_t& lhs, const time_t& rhs);
+
+bool CheckEquelSize(const size_t lhs, const size_t rhs);
+
+bool CheckFileChange(const FilePath& file, const time_t& prev_time, const size_t prev_size);
+
+bool CheckDirChange(const FilePath& file, const time_t& prev_time);
 
 std::time_t LastFileWrite(const FilePath& file);
 

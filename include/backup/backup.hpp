@@ -44,4 +44,8 @@ static void FullBackup(const FilePath& work_dir, const FilePath& backup_dir, Log
 
 static void FullCopy(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger);
 
+static void IncBackup(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger);
+
+static void IncCopy(const FilePath& work_dir, const FilePath& backup_dir, Logger& logger, const FilesBackup& saved_files);
+
 } 
